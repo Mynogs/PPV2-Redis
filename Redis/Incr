@@ -1,0 +1,73 @@
+-- 06.04.2018 10:20:32 AR V1.0a
+
+generic = {
+  name = 'Redis INCR function',
+  parameter = {
+    name = 'a:a'
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setInputPinTypeRestrains(1, 'boolean')
+    block.setInputPinName(1, self.parameter.name)
+    block.setOutputsPinCount(1)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', self.name, [[
+Increments the number stored at key by one if the input
+goes from fals to true (rising edge)
+If the key does not exist, it is set to 0 before performing the operation
+]])
+    gui.add('Edit', 'EditName', 'Variable name')
+    gui.set('EditName', 'Text', self.parameter.name)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.name = gui.get('EditName', 'Text')
+    block.setInputPinName(1, self.parameter.name)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar{
+      Type = 0x00,
+      CenterDrawSource =
+        'draw.setColorA(0.63, 0.10, 0.06) draw.polygon(15, 5, 20, 7, 20, 13, 15, 15, 10,13, 10, 7)' ..
+        'draw.setColorA(1, 1, 1) draw.line(12, 7, 14, 7) draw.line(14, 6, 16, 6) draw.line(14, 8, 16, 8)'
+    }
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          block.q = tonumber(block.parent.redis.client:get('NAME'))
+        end
+
+        block.step = function(a)
+          if a and not block.a then
+            block.q = block.parent.redis.client:incr('NAME')
+          end
+          block.a = a
+          return block.q
+        end
+
+        block.stop = function()
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['NAME'] = self.parameter.name,
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+

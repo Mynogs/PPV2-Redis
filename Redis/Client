@@ -1,0 +1,82 @@
+-- 22.10.2017 17:26:16 AR V1.0a
+
+block.setSize(151, 51)
+
+generic = {
+  name = 'Redis client',
+  parameter = {
+    ip = '127.0.0.1',
+    port = 6379,
+    db = 15
+  },
+
+  init = function(self)
+    block.setInputsPinCount(0)
+    block.setOutputsPinCount(0)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', self.name,
+[[
+Client connection to a redis database server
+]])
+    gui.add('EditIP', 'EditIP', 'IP')
+    gui.add('Edit', 'EditPort', 'Port')
+    gui.add('Edit', 'EditDB', 'Database')
+    gui.set('EditIP', 'Text', self.parameter.ip)
+    gui.set('EditPort', 'Integer', self.parameter.port)
+    gui.set('EditDB', 'Integer', self.parameter.db)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.ip = gui.get('EditIP', 'Text')
+    self.parameter.port = gui.get('EditPort', 'Integer')
+    self.parameter.db = gui.get('EditDB', 'Integer')
+    gui.ipPoolAdd(self.parameter.ip, "Redis server")
+    gui.ipPoolWrite(self.parameter.ip, "Port", self.parameter.port)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar{
+      Type = 0x00,
+      CenterDrawSource =
+        'draw.setColorA(0.63, 0.10, 0.06) draw.polygon(15, 5, 20, 7, 20, 13, 15, 15, 10,13, 10, 7)' ..
+        'draw.setColorA(1, 1, 1) draw.line(12, 7, 14, 7)  draw.line(14, 6, 16, 6)  draw.line(14, 8, 16, 8) ' ..
+        'draw.setColorA(0, 0, 0) draw.text(0, 0, w, h, "' .. self.parameter.ip .. ':' .. self.parameter.port .. '\\nDB ' .. self.parameter.db .. '", 4)'
+    }
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          block.parent.redis = {
+            redis = require 'redis'
+          }
+          block.parent.redis.client = assert(block.parent.redis.redis.connect{host = 'IP', port = PORT})
+          block.parent.redis.client:select(DB)
+        end
+
+        block.step = function()
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['NAME'] = self.name,
+      ['IP'] = self.parameter.ip,
+      ['PORT'] = self.parameter.port,
+      ['DB'] = self.parameter.db
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+
