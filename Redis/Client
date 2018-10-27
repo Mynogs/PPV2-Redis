@@ -12,7 +12,7 @@ generic = {
   },
 
   init = function(self)
-    pcall(block.requires, 'socket', 'redis.lua')
+    pcall(block.modules, 'socket', 'redis.lua')
     block.setInputsPinCount(0)
     block.setOutputsPinCount(0)
     block.modifyFlags('SupressStopFunctionCall', true)
