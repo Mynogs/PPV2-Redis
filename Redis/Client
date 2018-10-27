@@ -1,4 +1,5 @@
 -- 22.10.2017 17:26:16 AR V1.0a
+-- 15.10.2018 08:04:30 AR V1.0b Add resolve function
 
 block.setSize(151, 51)
 
@@ -11,6 +12,7 @@ generic = {
   },
 
   init = function(self)
+    pcall(block.requires, 'socket', 'redis.lua')
     block.setInputsPinCount(0)
     block.setOutputsPinCount(0)
     block.modifyFlags('SupressStopFunctionCall', true)
@@ -58,7 +60,23 @@ Client connection to a redis database server
 
         block.start = function()
           block.parent.redis = {
-            redis = require 'redis'
+            redis = require 'redis',
+            resolve = function(s)
+              if not s or s =='nil' then
+                return nil
+              end
+              if s == 'false' then
+                return false
+              end
+              if s == 'true' then
+                return true
+              end
+              local n = tonumber(s)
+              if n then
+                return n
+              end
+              return s
+            end,
           }
           block.parent.redis.client = assert(block.parent.redis.redis.connect{host = 'IP', port = PORT})
           block.parent.redis.client:select(DB)
