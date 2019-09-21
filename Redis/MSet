@@ -1,4 +1,5 @@
 -- 07.04.2018 11:38:34 AR V1.0a
+-- 21.09.2019 08:37:59 AR V1.0b Correct info
 
 generic = {
   name = 'Redis MGET function',
@@ -14,9 +15,11 @@ generic = {
 
   open = function(self)
     gui.add('Info', 'Info', self.name, [[
-Returns the values of all specified keys.
-For every key that does not hold a string value or does not exist,
-the special value nil is returned.
+Sets the given keys to hold values.
+If key already holds a value, it is overwritten, regardless of its type.
+Any previous time to live associated with the key is discarded on
+successful MSET operation.
+MSET is atomic.
 ]])
     gui.add('Memo', 'MemoNames', 'Names', {Height = 200, RemoveEmptyLines = true})
     gui.set('MemoNames', 'Text', self.parameter.names)
@@ -48,7 +51,6 @@ the special value nil is returned.
         end
 
         block.step = function(a)
-
           return block.parent.redis.client:mset({NAMES})
         end
 
