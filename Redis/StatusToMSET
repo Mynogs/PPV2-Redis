@@ -1,0 +1,86 @@
+-- 07.04.2018 11:38:34 AR V1.0a
+-- 21.09.2019 08:37:59 AR V1.0b Correct info
+
+generic = {
+  name = 'Status to MSET',
+  parameter = {
+    name = 'stat'
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(0)
+    block.setInputPinTypeRestrains(1, 'table')
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', self.name, [[
+Copy all status code to redis via MSET.
+Name and status code are connected: stat:100, stat:310.
+MSET is atomic.
+]])
+    gui.add('Edit', 'EditName', 'Variable name')
+    gui.set('EditName', 'Text', self.parameter.name)
+    block.setInputPinName(1, self.parameter.name)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.name = gui.get('EditName', 'Text')
+    block.setInputPinName(1, self.parameter.name)
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar{
+      Type = 0x00,
+      CenterDrawSource =
+        'draw.setColorA(0.63, 0.10, 0.06) draw.polygon(15, 5, 20, 7, 20, 13, 15, 15, 10,13, 10, 7)' ..
+        'draw.setColorA(1, 1, 1) draw.line(12, 7, 14, 7) draw.line(14, 6, 16, 6) draw.line(14, 8, 16, 8)'
+    }
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+        end
+
+        block.step = function(a)
+          local a2 = {}
+          for k, v in pairs(a) do
+            a2['["NAME' .. k .. '"]'] = v
+          end
+          return block.parent.redis.client:mset(a2)
+        end
+
+        block.stop = function()
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['NAME'] = self.parameter.name and self.parameter.name .. ':' or '',
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
