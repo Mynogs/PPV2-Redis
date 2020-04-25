@@ -1,4 +1,6 @@
 -- 06.04.2018 10:14:39 AR V1.0a
+-- 15.10.2018 08:18:58 AR V1.0b Add resolve
+-- 25.04.2020 06:57:54 AR V1.0c Outpt datatypes 'nil', 'boolean', 'number', 'string'
 
 generic = {
   name = 'Redis GET function',
@@ -9,7 +11,7 @@ generic = {
   init = function(self)
     block.setInputsPinCount(0)
     block.setOutputsPinCount(1)
-    block.setOutputPinTypeRestrains(1, 'nil', 'string')
+    block.setOutputPinTypeRestrains(1, 'nil', 'boolean', 'number', 'string')
     block.setOutputPinName(1, self.parameter.name)
   end,
 
@@ -50,7 +52,7 @@ because GET only handles string values.]])
         end
 
         block.step = function()
-          return block.parent.redis.client:get('NAME')
+          return block.parent.redis.resolve(block.parent.redis.client:get('NAME'))
         end
 
         block.stop = function()
